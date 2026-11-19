@@ -1,0 +1,46 @@
+services:
+  app:
+    build: .
+    image: burnroom:latest
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      REDIS_URL: redis://redis:6379
+      # Seconds a room survives with nobody in it (covers refreshes and flaky Wi-Fi).
+      EMPTY_GRACE_MS: "15000"
+      # Rooms created per IP per minute.
+      CREATE_LIMIT_PER_MIN: "10"
+      # Set to 1 when running behind a reverse proxy that sets X-Forwarded-For.
+      TRUST_PROXY: "0"
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+
+  redis:
+    image: redis:7.4-alpine
+    # No RDB snapshots, no AOF, no volume: room data only ever lives in RAM,
+    # and every key carries its room's expiry.
+    command:
+      - redis-server
+      - --save
+      - ""
+      - --appendonly
+      - "no"
+      - --maxmemory
+      - 256mb
+      - --maxmemory-policy
+      - volatile-ttl
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /data
+    security_opt:
+      - no-new-privileges:true

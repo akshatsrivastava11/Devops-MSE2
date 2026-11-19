@@ -1,0 +1,18 @@
+[
+ {
+  "scope": "app",
+  "shape": "app screen",
+  "theme": "console",
+  "nav": "top bar",
+  "signature": "room countdown clock",
+  "sections": [
+   "entry",
+   "room feed",
+   "scratchpad",
+   "states"
+  ],
+  "prompt": "disposable developer rooms",
+  "date": "2026-11-19",
+  "mode": "build"
+ }
+]
